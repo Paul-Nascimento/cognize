@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Tarefas{% endblock %}
+{% block title_bar %}Tarefas{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div><p class="lead">{{ tarefas|length }} tarefa(s) cadastrada(s)</p></div>
+  <div class="spacer"></div>
+  {% if nav_pode_editar %}
+  <a href="{% url 'tarefas:vincular' %}" class="btn btn--ghost">
+    <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>
+    Vincular em massa
+  </a>
+  <a href="{% url 'tarefas:nova' %}" class="btn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nova tarefa
+  </a>
+  {% endif %}
+</div>
+
+<div class="toolbar">
+  <form method="get">
+    <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome ou frequência…">
+    <select name="departamento" onchange="this.form.submit()">
+      <option value="">Todos os departamentos</option>
+      {% for d in departamentos %}
+        <option value="{{ d }}" {% if depto_sel == d %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn--ghost btn--sm">Filtrar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Tarefa</th><th>Departamento</th><th>Frequência</th>
+          <th>Órgão</th><th>Vencimento</th><th>Empresas</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in tarefas %}
+        <tr>
+          <td><a href="{% url 'tarefas:detalhe' t.pk %}">{{ t.nome }}</a>
+            {% if not t.ativo %}<span class="badge" style="margin-left:6px">inativa</span>{% endif %}
+          </td>
+          <td><span class="badge badge--navy">{{ t.departamento }}</span></td>
+          <td>{{ t.frequencia }}</td>
+          <td>{{ t.orgao }}</td>
+          <td class="mono">{% if t.dia_vencimento %}dia {{ t.dia_vencimento }}{% else %}—{% endif %}</td>
+          <td><span class="badge badge--teal">{{ t.qtd_empresas }}</span></td>
+          <td style="text-align:right"><a href="{% url 'tarefas:detalhe' t.pk %}" class="btn btn--ghost btn--sm">Abrir</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">
+          <div class="empty">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <p>Nenhuma tarefa.{% if nav_pode_importar %} Importe o relatório para começar.{% endif %}</p>
+          </div>
+        </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

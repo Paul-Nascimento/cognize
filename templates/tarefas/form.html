@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block title_bar %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:820px">
+  <div class="card__body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+          <div class="field {% if field.name == 'nome' %}full{% endif %}{% if field.name == 'ativo' %} full{% endif %}">
+            {% if field.name == 'ativo' %}
+              <div class="checkbox-row">{{ field }}<label for="{{ field.id_for_label }}" style="margin:0">{{ field.label }}</label></div>
+            {% else %}
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+            {% endif %}
+            {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+            {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">Salvar tarefa</button>
+        <a href="{% url 'tarefas:lista' %}" class="btn btn--ghost">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

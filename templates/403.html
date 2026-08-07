@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Sem permissão{% endblock %}
+{% block title_bar %}Acesso negado{% endblock %}
+{% block content %}
+<div class="card"><div class="card__body">
+  <div class="empty">
+    <svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zM16 11V7a4 4 0 00-8 0v4"/></svg>
+    <p>Seu cargo não tem permissão para essa ação.</p>
+    <a href="{% url 'core:dashboard' %}" class="btn btn--sm">Voltar ao painel</a>
+  </div>
+</div></div>
+{% endblock %}

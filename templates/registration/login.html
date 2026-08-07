@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Cognize</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="{% static 'img/logo-mark.png' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <section class="login-hero">
+    <img src="{% static 'img/logo-horizontal.png' %}" alt="Cognize Contabilidade"
+         style="filter: brightness(0) invert(1); opacity:.96;">
+    <h2>Gestão contábil de empresas e tarefas, em um só lugar.</h2>
+    <p>Cadastro completo de empresas com dados da Receita, controle de tarefas
+       por competência e acompanhamento mensal da equipe.</p>
+    <div class="marks">
+      <div><b>Empresas</b> cadastro automatizado</div>
+      <div><b>Tarefas</b> gestão por competência</div>
+      <div><b>Equipe</b> acesso por cargo</div>
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-card">
+      <h3>Bem-vindo de volta</h3>
+      <p class="sub">Entre com suas credenciais para continuar.</p>
+
+      {% if form.non_field_errors %}
+        <div class="msg danger" style="margin-bottom:16px">
+          {{ form.non_field_errors|striptags }}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        <div class="field">
+          <label for="id_username">Usuário</label>
+          {{ form.username }}
+        </div>
+        <div class="field">
+          <label for="id_password">Senha</label>
+          {{ form.password }}
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn">Entrar</button>
+      </form>
+
+      <div class="login-hint">
+        <b>Usuários de demonstração</b> (senha <b>cognize123</b>):<br>
+        admin · gestor · colab · visual
+      </div>
+    </div>
+  </section>
+</div>
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

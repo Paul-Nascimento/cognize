@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Meu perfil{% endblock %}
+{% block title_bar %}Meu perfil{% endblock %}
+
+{% block content %}
+<div class="two-col">
+  <div class="card">
+    <div class="card__head"><h2>Dados pessoais</h2></div>
+    <div class="card__body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+          {% for field in form %}
+          <div class="field {% if field.name == 'email' %}full{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="form-actions">
+          <button type="submit" name="salvar_perfil" value="1" class="btn">Salvar perfil</button>
+        </div>
+      </form>
+      <div style="margin-top:16px;color:var(--muted);font-size:13px">
+        Cargo atual: <span class="badge badge--teal">{{ user.get_cargo_display }}</span>
+        {% if user.departamento %} · {{ user.departamento }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__head"><h2>Alterar senha</h2></div>
+    <div class="card__body">
+      <form method="post">
+        {% csrf_token %}
+        {% for field in senha_form %}
+        <div class="field" style="margin-bottom:14px">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" name="trocar_senha" value="1" class="btn btn--navy">Trocar senha</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

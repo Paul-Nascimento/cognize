@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Painel{% endblock %}
+{% block title_bar %}Painel{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div>
+    <p class="lead">Visão geral · competência {{ mes_atual }}/{{ ano_atual }}</p>
+  </div>
+  <div class="spacer"></div>
+  {% if nav_pode_editar %}
+  <a href="{% url 'empresas:nova' %}" class="btn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nova empresa
+  </a>
+  {% endif %}
+</div>
+
+<div class="stats">
+  <div class="stat stat--navy">
+    <div class="num">{{ total_empresas }}</div>
+    <div class="lbl">Empresas cadastradas</div>
+  </div>
+  <div class="stat stat--ok">
+    <div class="num">{{ empresas_ok }}</div>
+    <div class="lbl">Enriquecidas pela Receita</div>
+  </div>
+  <div class="stat stat--warn">
+    <div class="num">{{ empresas_pendentes }}</div>
+    <div class="lbl">Consulta pendente</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ total_tarefas }}</div>
+    <div class="lbl">Tarefas cadastradas</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ total_vinculos }}</div>
+    <div class="lbl">Vínculos empresa-tarefa</div>
+  </div>
+</div>
+
+<div class="two-col" style="margin-top:22px">
+  <div class="card">
+    <div class="card__head">
+      <h2>Andamento da competência atual</h2>
+      <div class="spacer" style="flex:1"></div>
+      <span class="badge badge--teal">{{ progresso }}% concluído</span>
+    </div>
+    <div class="card__body">
+      {% if total_exec %}
+      <div class="progress" style="margin-bottom:20px"><span style="width: {{ progresso }}%"></span></div>
+      <div class="chip-list">
+        <span class="badge">{{ resumo_status.PENDENTE }} pendentes</span>
+        <span class="badge badge--info">{{ resumo_status.ANDAMENTO }} em andamento</span>
+        <span class="badge badge--ok">{{ resumo_status.CONCLUIDA }} concluídas</span>
+        <span class="badge badge--danger">{{ resumo_status.ATRASADA }} atrasadas</span>
+        <span class="badge badge--navy">{{ resumo_status.DISPENSADA }} dispensadas</span>
+      </div>
+      <p style="margin-top:18px">
+        <a href="{% url 'tarefas:gestao_mensal' %}?mes={{ mes_atual }}&ano={{ ano_atual }}" class="btn btn--ghost btn--sm">
+          Abrir gestão mensal →
+        </a>
+      </p>
+      {% else %}
+      <div class="empty" style="padding:26px 0">
+        <svg viewBox="0 0 24 24"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>
+        <p>Nenhuma execução gerada para {{ mes_atual }}/{{ ano_atual }}.</p>
+        {% if nav_pode_editar %}
+        <a href="{% url 'tarefas:gestao_mensal' %}" class="btn btn--sm">Gerar competência</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__head"><h2>Tarefas por departamento</h2></div>
+    <div class="card__body">
+      {% if por_departamento %}
+      <div class="table-wrap">
+        <table class="data">
+          <tbody>
+          {% for d in por_departamento %}
+            <tr><td>{{ d.departamento }}</td><td style="text-align:right"><span class="badge badge--navy">{{ d.qtd }}</span></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:26px 0">
+        <p>Nenhuma tarefa cadastrada ainda.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if empresas_pendentes and nav_pode_editar %}
+<div class="card" style="margin-top:22px">
+  <div class="card__head"><h2>Fila de enriquecimento ReceitaWS</h2>
+    <div class="spacer" style="flex:1"></div>
+    <span class="badge badge--warn">{{ empresas_pendentes }} pendente(s)</span>
+  </div>
+  <div class="card__body">
+    <p style="margin-top:0;color:var(--muted)">
+      Há empresas aguardando os dados oficiais. O processamento respeita o limite
+      de {{ orcamento.limite }} consultas por minuto.
+    </p>
+    <a href="{% url 'empresas:lista' %}?status=PENDENTE" class="btn btn--sm">Ver empresas pendentes →</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

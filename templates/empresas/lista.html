@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Empresas{% endblock %}
+{% block title_bar %}Empresas{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div><p class="lead">{{ empresas|length }} empresa(s) · {{ pendentes }} com consulta pendente</p></div>
+  <div class="spacer"></div>
+  <div class="rate-meter" title="Consultas disponíveis na janela de 60s">
+    <span>ReceitaWS</span>
+    <span class="dots">
+      {% for i in "123"|make_list %}
+        <i class="{% if forloop.counter > orcamento.disponiveis %}used{% endif %}"></i>
+      {% endfor %}
+    </span>
+    <span>{{ orcamento.disponiveis }}/{{ orcamento.limite }}</span>
+  </div>
+  {% if nav_pode_editar %}
+  <a href="{% url 'empresas:nova' %}" class="btn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nova empresa
+  </a>
+  {% endif %}
+</div>
+
+{% if pendentes and nav_pode_editar %}
+<div class="card" style="margin-bottom:18px;border-color:#fde68a;background:#fffdf5">
+  <div class="card__body" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:220px">
+      <strong>{{ pendentes }} empresa(s) aguardando dados da ReceitaWS.</strong>
+      <div style="color:var(--muted);font-size:13px;margin-top:3px">
+        Processe a fila respeitando o limite de {{ orcamento.limite }} consultas/minuto — sem travar o navegador.
+      </div>
+      <div class="progress" style="margin-top:12px"><span id="fila-barra" style="width:0%"></span></div>
+    </div>
+    <button id="btn-fila" class="btn btn--navy"
+            data-url="{% url 'empresas:processar_fila' %}" data-total="{{ pendentes }}">
+      Processar fila (<span id="fila-restante">{{ pendentes }}</span>)
+    </button>
+  </div>
+  <div id="fila-log" class="card__body" style="border-top:1px solid var(--border);max-height:200px;overflow:auto;font-size:13px;display:none"></div>
+</div>
+{% endif %}
+
+<div class="toolbar">
+  <form method="get">
+    <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por ID, razão social ou CNPJ…">
+    <select name="status" onchange="this.form.submit()">
+      <option value="">Todos os status</option>
+      <option value="OK" {% if status_sel == 'OK' %}selected{% endif %}>Consultado</option>
+      <option value="PENDENTE" {% if status_sel == 'PENDENTE' %}selected{% endif %}>Pendente</option>
+      <option value="ERRO" {% if status_sel == 'ERRO' %}selected{% endif %}>Erro</option>
+    </select>
+    <button type="submit" class="btn btn--ghost btn--sm">Filtrar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>ID</th><th>Razão social</th><th>CNPJ</th><th>Regime</th>
+          <th>Município</th><th>Consulta</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in empresas %}
+        <tr>
+          <td class="cell-id">{{ e.id_sistema }}</td>
+          <td>
+            <a href="{% url 'empresas:detalhe' e.pk %}">{{ e.razao_social|default:"—" }}</a>
+            {% if e.nome_fantasia %}<div style="font-size:12px;color:var(--muted)">{{ e.nome_fantasia }}</div>{% endif %}
+          </td>
+          <td class="mono">{{ e.cnpj_formatado }}</td>
+          <td>{{ e.get_regime_tributario_display }}</td>
+          <td>{{ e.municipio|default:"—" }}{% if e.uf %}/{{ e.uf }}{% endif %}</td>
+          <td>
+            {% if e.status_consulta == 'OK' %}<span class="badge badge--ok"><span class="dot"></span>Consultado</span>
+            {% elif e.status_consulta == 'PENDENTE' %}<span class="badge badge--warn"><span class="dot"></span>Pendente</span>
+            {% else %}<span class="badge badge--danger"><span class="dot"></span>Erro</span>{% endif %}
+          </td>
+          <td style="text-align:right">
+            <a href="{% url 'empresas:detalhe' e.pk %}" class="btn btn--ghost btn--sm">Abrir</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">
+          <div class="empty">
+            <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+            <p>Nenhuma empresa encontrada.{% if nav_pode_editar %} Cadastre a primeira ou importe uma planilha.{% endif %}</p>
+          </div>
+        </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script>if(document.getElementById('btn-fila')){document.getElementById('fila-log').style.display='block';}</script>
+<script src="{% static 'js/fila.js' %}"></script>
+{% endblock %}

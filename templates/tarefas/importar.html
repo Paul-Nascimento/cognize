@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block title_bar %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div>
+    <p class="lead">
+      {% if tipo == 'tarefas' %}Cadastre várias tarefas de uma vez por planilha.
+      {% else %}Vincule várias tarefas a várias empresas por planilha — uma linha por vínculo.{% endif %}
+    </p>
+  </div>
+  <div class="spacer"></div>
+  <a href="{% url modelo_url %}" class="btn btn--ghost">
+    <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    Baixar modelo
+  </a>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card__head"><h2>Enviar planilha</h2></div>
+    <div class="card__body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="field" style="margin-bottom:16px">
+          <label>{{ form.arquivo.label }}</label>
+          {{ form.arquivo }}
+          <span class="help">{{ form.arquivo.help_text }}</span>
+        </div>
+        <button type="submit" class="btn">Importar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__head"><h2>Formato esperado</h2></div>
+    <div class="card__body" style="color:var(--muted);font-size:14px;line-height:1.7">
+      {% if tipo == 'tarefas' %}
+      <p style="margin-top:0">Colunas: <b>Departamento</b>, <b>Nome</b>, <b>Frequência</b>,
+        <b>Ação(qtd dias)</b>, <b>Meta(qtd dias)</b>, <b>Dia Vencimento</b>,
+        <b>Fato Gerador</b>, <b>Órgão</b>, <b>Status</b>.</p>
+      <p style="margin-bottom:0">Aceita direto o formato do <b>Relatório</b> de tarefas — marcadores como
+        <code>--&gt;</code> e <code>*</code> são limpos automaticamente.</p>
+      {% else %}
+      <p style="margin-top:0">Colunas: <b>ID Empresa</b> (o ID no sistema, ex.: 300) e
+        <b>Tarefa</b> (o nome exato da tarefa já cadastrada).</p>
+      <p style="margin-bottom:0">Cada linha cria um vínculo. Repita o ID para vincular várias tarefas à mesma empresa.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if resultado %}
+<div class="card" style="margin-top:22px">
+  <div class="card__head"><h2>Resultado</h2></div>
+  <div class="card__body">
+    <div class="chip-list" style="margin-bottom:12px">
+      {% if tipo == 'tarefas' %}
+        <span class="badge badge--ok">{{ resultado.criadas }} criadas</span>
+        <span class="badge badge--info">{{ resultado.atualizadas }} atualizadas</span>
+      {% else %}
+        <span class="badge badge--ok">{{ resultado.criados }} vínculos criados</span>
+      {% endif %}
+      {% if resultado.erros %}<span class="badge badge--danger">{{ resultado.erros|length }} com aviso</span>{% endif %}
+    </div>
+    {% if resultado.erros %}
+    <ul style="margin:0;color:var(--warn);font-size:13px">
+      {% for e in resultado.erros %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

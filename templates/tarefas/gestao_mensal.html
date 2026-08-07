@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Gestão mensal{% endblock %}
+{% block title_bar %}Gestão mensal{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h2 style="margin:0;color:var(--navy)">{{ mes_nome }} / {{ ano }}</h2>
+    <p class="lead">{{ total }} execução(ões) nesta competência</p>
+  </div>
+  <div class="spacer"></div>
+  {% if nav_pode_editar %}
+  <form method="post" action="{% url 'tarefas:gerar_competencia' %}" class="inline-form"
+        data-confirm="Gerar execuções para {{ mes_nome }}/{{ ano }} a partir dos vínculos ativos?">
+    {% csrf_token %}
+    <input type="hidden" name="mes" value="{{ mes }}">
+    <input type="hidden" name="ano" value="{{ ano }}">
+    <button class="btn btn--navy">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Gerar competência
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="toolbar">
+  <form method="get">
+    <select name="mes" onchange="this.form.submit()">
+      {% for num, nome in meses %}<option value="{{ num }}" {% if num == mes %}selected{% endif %}>{{ nome }}</option>{% endfor %}
+    </select>
+    <select name="ano" onchange="this.form.submit()">
+      {% for a in anos %}<option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+    <select name="departamento" onchange="this.form.submit()">
+      <option value="">Todos os departamentos</option>
+      {% for d in departamentos %}<option value="{{ d }}" {% if depto_sel == d %}selected{% endif %}>{{ d }}</option>{% endfor %}
+    </select>
+    <select name="status" onchange="this.form.submit()">
+      <option value="">Todos os status</option>
+      <option value="PENDENTE" {% if status_sel == 'PENDENTE' %}selected{% endif %}>Pendente</option>
+      <option value="ANDAMENTO" {% if status_sel == 'ANDAMENTO' %}selected{% endif %}>Em andamento</option>
+      <option value="CONCLUIDA" {% if status_sel == 'CONCLUIDA' %}selected{% endif %}>Concluída</option>
+      <option value="ATRASADA" {% if status_sel == 'ATRASADA' %}selected{% endif %}>Atrasada</option>
+      <option value="DISPENSADA" {% if status_sel == 'DISPENSADA' %}selected{% endif %}>Dispensada</option>
+    </select>
+  </form>
+</div>
+
+<div class="stats" style="margin-bottom:20px">
+  <div class="stat"><div class="num">{{ resumo.PENDENTE }}</div><div class="lbl">Pendentes</div></div>
+  <div class="stat"><div class="num">{{ resumo.ANDAMENTO }}</div><div class="lbl">Em andamento</div></div>
+  <div class="stat stat--ok"><div class="num">{{ resumo.CONCLUIDA }}</div><div class="lbl">Concluídas</div></div>
+  <div class="stat stat--warn"><div class="num">{{ resumo.ATRASADA }}</div><div class="lbl">Atrasadas</div></div>
+  <div class="stat"><div class="num">{{ resumo.DISPENSADA }}</div><div class="lbl">Dispensadas</div></div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>Empresa</th><th>Tarefa</th><th>Depto</th><th>Venc.</th><th>Responsável</th><th style="width:170px">Status</th></tr>
+      </thead>
+      <tbody>
+      {% for e in execucoes %}
+        <tr>
+          <td><span class="cell-id">{{ e.empresa.id_sistema }}</span>
+            <div style="font-size:12px;color:var(--muted)">{{ e.empresa.razao_social|truncatechars:34 }}</div>
+          </td>
+          <td>{{ e.tarefa.nome }}</td>
+          <td><span class="badge badge--navy">{{ e.tarefa.departamento }}</span></td>
+          <td class="mono">{% if e.tarefa.dia_vencimento %}dia {{ e.tarefa.dia_vencimento }}{% else %}—{% endif %}</td>
+          <td id="resp-{{ e.pk }}">{{ e.responsavel.get_full_name|default:"—" }}</td>
+          <td>
+            {% if nav_pode_editar %}
+            <select class="status-select" data-url="{% url 'tarefas:atualizar_execucao' e.pk %}"
+                    data-id="{{ e.pk }}" data-atual="{{ e.status }}">
+              {% for val, label in StatusExecucao.choices %}
+                <option value="{{ val }}" {% if e.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            {% else %}
+              <span class="badge">{{ e.get_status_display }}</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">
+          <div class="empty">
+            <svg viewBox="0 0 24 24"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg>
+            <p>Nenhuma execução para {{ mes_nome }}/{{ ano }}.</p>
+            {% if nav_pode_editar %}
+            <p class="link-muted" style="font-size:13px">Clique em <b>Gerar competência</b> para criar execuções a partir dos vínculos ativos.</p>
+            {% endif %}
+          </div>
+        </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'js/mensal.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Vincular em massa{% endblock %}
+{% block title_bar %}Vincular tarefas a empresas{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div><p class="lead">Selecione várias empresas e várias tarefas. Cada combinação vira um vínculo.</p></div>
+  <div class="spacer"></div>
+  {% if nav_pode_importar %}
+  <a href="{% url 'tarefas:importar_vinculos' %}" class="btn btn--ghost">Prefere planilha? Importar vínculos</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card__body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field">
+          <label>{{ form.empresas.label }}
+            <span class="link-muted" style="font-weight:400;font-size:12px">(Ctrl/Cmd para várias)</span>
+          </label>
+          <input type="text" class="filtro-select" data-target="id_empresas" placeholder="Filtrar empresas…" style="margin-bottom:8px">
+          {{ form.empresas }}
+          {% if form.empresas.errors %}<ul class="errorlist">{% for e in form.empresas.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="field">
+          <label>{{ form.tarefas.label }}
+            <span class="link-muted" style="font-weight:400;font-size:12px">(Ctrl/Cmd para várias)</span>
+          </label>
+          <input type="text" class="filtro-select" data-target="id_tarefas" placeholder="Filtrar tarefas…" style="margin-bottom:8px">
+          {{ form.tarefas }}
+          {% if form.tarefas.errors %}<ul class="errorlist">{% for e in form.tarefas.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>
+          Criar vínculos
+        </button>
+        <span class="link-muted" style="align-self:center;font-size:13px">
+          Vínculos já existentes são ignorados automaticamente.
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// filtro rápido dos <select multiple>
+document.querySelectorAll('.filtro-select').forEach(function(inp){
+  const sel = document.getElementById(inp.dataset.target);
+  if(!sel) return;
+  const opts = Array.from(sel.options);
+  inp.addEventListener('input', function(){
+    const q = inp.value.toLowerCase();
+    opts.forEach(o => { o.hidden = q && o.text.toLowerCase().indexOf(q) === -1; });
+  });
+});
+</script>
+{% endblock %}

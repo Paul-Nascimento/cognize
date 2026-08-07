@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ empresa.razao_social|default:empresa.id_sistema }}{% endblock %}
+{% block title_bar %}Empresa {{ empresa.id_sistema }}{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h2 style="margin:0;color:var(--navy)">{{ empresa.razao_social|default:"(sem razão social)" }}</h2>
+    <p class="lead">
+      {{ empresa.cnpj_formatado }}
+      {% if empresa.status_consulta == 'OK' %}<span class="badge badge--ok" style="margin-left:8px"><span class="dot"></span>Consultado</span>
+      {% elif empresa.status_consulta == 'PENDENTE' %}<span class="badge badge--warn" style="margin-left:8px"><span class="dot"></span>Pendente</span>
+      {% else %}<span class="badge badge--danger" style="margin-left:8px"><span class="dot"></span>Erro</span>{% endif %}
+    </p>
+  </div>
+  <div class="spacer"></div>
+  {% if nav_pode_editar %}
+  <button id="btn-consultar" class="btn" data-url="{% url 'empresas:consultar' empresa.pk %}">
+    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-6.2-8.5"/><path d="M21 4v5h-5"/></svg>
+    Atualizar via Receita
+  </button>
+  <a href="{% url 'empresas:editar' empresa.pk %}" class="btn btn--ghost">Editar</a>
+  {% endif %}
+  {% if nav_pode_excluir %}
+  <form method="post" action="{% url 'empresas:excluir' empresa.pk %}" class="inline-form"
+        data-confirm="Excluir esta empresa? Vínculos e execuções serão removidos.">
+    {% csrf_token %}<button class="btn btn--danger">Excluir</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if empresa.mensagem_consulta %}
+<div class="msg {% if empresa.status_consulta == 'ERRO' %}danger{% else %}warning{% endif %}" style="margin-bottom:18px">
+  {{ empresa.mensagem_consulta }}
+</div>
+{% endif %}
+
+<div class="two-col">
+  <div class="card">
+    <div class="card__head"><h2>Dados cadastrais</h2></div>
+    <div class="card__body">
+      <div class="detail-grid">
+        <div class="dl"><dt>ID no sistema</dt><dd>{{ empresa.id_sistema }}</dd></div>
+        <div class="dl"><dt>Regime tributário</dt><dd>{{ empresa.get_regime_tributario_display }}</dd></div>
+        <div class="dl"><dt>Inscrição ISS</dt><dd>{{ empresa.inscricao_iss|default:"—" }}</dd></div>
+        <div class="dl"><dt>Inscrição ICMS</dt><dd>{{ empresa.inscricao_icms|default:"—" }}</dd></div>
+        <div class="dl"><dt>Nome fantasia</dt><dd>{{ empresa.nome_fantasia|default:"—" }}</dd></div>
+        <div class="dl"><dt>Porte</dt><dd>{{ empresa.porte|default:"—" }}</dd></div>
+        <div class="dl"><dt>Natureza jurídica</dt><dd>{{ empresa.natureza_juridica|default:"—" }}</dd></div>
+        <div class="dl"><dt>Abertura</dt><dd>{{ empresa.data_abertura|default:"—" }}</dd></div>
+        <div class="dl"><dt>Situação</dt><dd>{{ empresa.situacao_cadastral|default:"—" }}</dd></div>
+        <div class="dl"><dt>Capital social</dt><dd>{{ empresa.capital_social|default:"—" }}</dd></div>
+        <div class="dl"><dt>Simples Nacional</dt><dd>{% if empresa.simples_optante is None %}—{% elif empresa.simples_optante %}Optante{% else %}Não optante{% endif %}</dd></div>
+        <div class="dl"><dt>MEI (SIMEI)</dt><dd>{% if empresa.simei_optante is None %}—{% elif empresa.simei_optante %}Optante{% else %}Não optante{% endif %}</dd></div>
+      </div>
+
+      <div class="section-title">Atividade principal</div>
+      <p style="margin:0">
+        {% if empresa.atividade_principal_texto %}
+          <span class="mono">{{ empresa.atividade_principal_codigo }}</span> — {{ empresa.atividade_principal_texto }}
+        {% else %}—{% endif %}
+      </p>
+
+      {% if empresa.observacoes %}
+      <div class="section-title">Observações</div>
+      <p style="margin:0;white-space:pre-line">{{ empresa.observacoes }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card__head"><h2>Endereço e contato</h2></div>
+      <div class="card__body">
+        <div class="dl"><dt>Endereço</dt><dd>{{ empresa.endereco_completo|default:"—" }}</dd></div>
+        <div class="dl"><dt>E-mail</dt><dd>{{ empresa.email|default:"—" }}</dd></div>
+        <div class="dl"><dt>Telefone</dt><dd>{{ empresa.telefone|default:"—" }}</dd></div>
+        <div class="dl" style="border:none"><dt>Última consulta</dt><dd>{{ empresa.ultima_consulta|default:"nunca" }}</dd></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <div class="card__head">
+        <h2>Tarefas vinculadas</h2>
+        <div class="spacer" style="flex:1"></div>
+        <span class="badge badge--navy">{{ empresa.vinculos_tarefa.count }}</span>
+      </div>
+      <div class="card__body">
+        {% with vinculos=empresa.vinculos_tarefa.all %}
+        {% if vinculos %}
+          <div class="table-wrap">
+            <table class="data">
+              <tbody>
+              {% for v in vinculos %}
+                <tr>
+                  <td><a href="{% url 'tarefas:detalhe' v.tarefa.pk %}">{{ v.tarefa.nome }}</a>
+                    <div style="font-size:12px;color:var(--muted)">{{ v.tarefa.departamento }} · {{ v.tarefa.frequencia }}</div>
+                  </td>
+                  {% if nav_pode_editar %}
+                  <td style="text-align:right;width:1%">
+                    <form method="post" action="{% url 'tarefas:remover_vinculo' v.pk %}" class="inline-form"
+                          data-confirm="Remover este vínculo?">
+                      {% csrf_token %}<input type="hidden" name="next" value="empresa">
+                      <button class="btn btn--ghost btn--sm">Remover</button>
+                    </form>
+                  </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty" style="padding:20px 0">
+            <p>Nenhuma tarefa vinculada.</p>
+            {% if nav_pode_editar %}<a href="{% url 'tarefas:vincular' %}" class="btn btn--sm">Vincular tarefas</a>{% endif %}
+          </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  const btn = document.getElementById('btn-consultar');
+  if(!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; const txt = btn.innerHTML; btn.textContent = 'Consultando…';
+    try {
+      const resp = await window.postJSON(btn.dataset.url, {});
+      const data = await resp.json();
+      if(data.ok){ btn.textContent = 'Atualizado ✓'; setTimeout(()=>location.reload(), 700); }
+      else if(data.rate_limit){ alert('Limite de 3 consultas/min atingido. Tente em '+data.espera+'s.'); btn.disabled=false; btn.innerHTML=txt; }
+      else { alert(data.mensagem || 'Erro na consulta.'); btn.disabled=false; btn.innerHTML=txt; }
+    } catch(e){ alert('Erro de conexão.'); btn.disabled=false; btn.innerHTML=txt; }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+{% block title_bar %}Usuários{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div><p class="lead">{{ usuarios|length }} usuário(s) no sistema</p></div>
+  <div class="spacer"></div>
+  <a href="{% url 'accounts:novo_usuario' %}" class="btn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Novo usuário
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Usuário</th><th>Nome</th><th>Cargo</th><th>Departamento</th><th>Situação</th><th></th></tr></thead>
+      <tbody>
+      {% for u in usuarios %}
+        <tr>
+          <td class="cell-id">{{ u.username }}</td>
+          <td>{{ u.get_full_name|default:"—" }}</td>
+          <td>
+            {% if u.cargo == 'ADMINISTRADOR' %}<span class="badge badge--navy">{{ u.get_cargo_display }}</span>
+            {% elif u.cargo == 'GESTOR' %}<span class="badge badge--teal">{{ u.get_cargo_display }}</span>
+            {% elif u.cargo == 'COLABORADOR' %}<span class="badge badge--info">{{ u.get_cargo_display }}</span>
+            {% else %}<span class="badge">{{ u.get_cargo_display }}</span>{% endif %}
+          </td>
+          <td>{{ u.departamento|default:"—" }}</td>
+          <td>{% if u.is_active %}<span class="badge badge--ok"><span class="dot"></span>Ativo</span>{% else %}<span class="badge badge--danger"><span class="dot"></span>Inativo</span>{% endif %}</td>
+          <td style="text-align:right"><a href="{% url 'accounts:editar_usuario' u.pk %}" class="btn btn--ghost btn--sm">Editar</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top:22px">
+  <div class="card__head"><h2>O que cada cargo pode fazer</h2></div>
+  <div class="card__body">
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Cargo</th><th>Visualizar</th><th>Criar/editar</th><th>Excluir</th><th>Importar em massa</th><th>Gerenciar usuários</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge">Visualizador</span></td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td><span class="badge badge--info">Colaborador</span></td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td><span class="badge badge--teal">Gestor</span></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+          <tr><td><span class="badge badge--navy">Administrador</span></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

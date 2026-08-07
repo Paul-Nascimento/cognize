@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ tarefa.nome }}{% endblock %}
+{% block title_bar %}Tarefa{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h2 style="margin:0;color:var(--navy)">{{ tarefa.nome }}</h2>
+    <p class="lead"><span class="badge badge--navy">{{ tarefa.departamento }}</span>
+      {% if not tarefa.ativo %}<span class="badge">inativa</span>{% endif %}</p>
+  </div>
+  <div class="spacer"></div>
+  {% if nav_pode_editar %}
+  <a href="{% url 'tarefas:vincular' %}" class="btn btn--ghost">Vincular empresas</a>
+  <a href="{% url 'tarefas:editar' tarefa.pk %}" class="btn btn--ghost">Editar</a>
+  {% endif %}
+  {% if nav_pode_excluir %}
+  <form method="post" action="{% url 'tarefas:excluir' tarefa.pk %}" class="inline-form"
+        data-confirm="Excluir esta tarefa? Vínculos e execuções serão removidos.">
+    {% csrf_token %}<button class="btn btn--danger">Excluir</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card__head"><h2>Configuração</h2></div>
+    <div class="card__body">
+      <div class="detail-grid">
+        <div class="dl"><dt>Frequência</dt><dd>{{ tarefa.frequencia }}</dd></div>
+        <div class="dl"><dt>Órgão</dt><dd>{{ tarefa.orgao }}</dd></div>
+        <div class="dl"><dt>Ação (dias)</dt><dd>{{ tarefa.acao_qtd_dias|default:"—" }}</dd></div>
+        <div class="dl"><dt>Meta (dias)</dt><dd>{{ tarefa.meta_qtd_dias|default:"—" }}</dd></div>
+        <div class="dl"><dt>Dia de vencimento</dt><dd>{% if tarefa.dia_vencimento %}{{ tarefa.dia_vencimento }}{% else %}—{% endif %}</dd></div>
+        <div class="dl"><dt>Fato gerador</dt><dd>{{ tarefa.fato_gerador|default:"—" }}</dd></div>
+        <div class="dl"><dt>Re-envio</dt><dd>{{ tarefa.reenvio|default:"—" }}</dd></div>
+        <div class="dl"><dt>Status</dt><dd>{% if tarefa.ativo %}Ativa{% else %}Inativa{% endif %}</dd></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__head">
+      <h2>Empresas vinculadas</h2>
+      <div class="spacer" style="flex:1"></div>
+      <span class="badge badge--teal">{{ vinculos.count }}</span>
+    </div>
+    <div class="card__body">
+      {% if vinculos %}
+      <div class="table-wrap">
+        <table class="data">
+          <tbody>
+          {% for v in vinculos %}
+            <tr>
+              <td class="cell-id">{{ v.empresa.id_sistema }}</td>
+              <td><a href="{% url 'empresas:detalhe' v.empresa.pk %}">{{ v.empresa.razao_social|default:v.empresa.cnpj_formatado }}</a></td>
+              {% if nav_pode_editar %}
+              <td style="text-align:right;width:1%">
+                <form method="post" action="{% url 'tarefas:remover_vinculo' v.pk %}" class="inline-form" data-confirm="Remover vínculo?">
+                  {% csrf_token %}<button class="btn btn--ghost btn--sm">Remover</button>
+                </form>
+              </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty" style="padding:20px 0">
+        <p>Nenhuma empresa vinculada a esta tarefa.</p>
+        {% if nav_pode_editar %}<a href="{% url 'tarefas:vincular' %}" class="btn btn--sm">Vincular empresas</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cognize{% endblock %} · Cognize</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="{% static 'img/logo-mark.png' %}">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <img src="{% static 'img/logo-mark.png' %}" alt="Cognize">
+      <div class="word">COGNI<b>ZE</b></div>
+      <div class="sub">Contabilidade</div>
+    </div>
+    <nav class="nav">
+      {% url 'core:dashboard' as u_dash %}
+      {% url 'empresas:lista' as u_emp %}
+      {% url 'tarefas:lista' as u_tar %}
+      {% url 'tarefas:gestao_mensal' as u_men %}
+      {% url 'tarefas:vincular' as u_vin %}
+
+      <a href="{{ u_dash }}" class="{% if request.path == u_dash %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg> Painel
+      </a>
+
+      <div class="nav__label">Empresas</div>
+      <a href="{{ u_emp }}" class="{% if '/empresas/' in request.path and 'importar' not in request.path %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg> Empresas
+      </a>
+      {% if nav_pode_importar %}
+      <a href="{% url 'empresas:importar' %}" class="{% if request.resolver_match.url_name == 'importar' and '/empresas/' in request.path %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg> Importar empresas
+      </a>
+      {% endif %}
+
+      <div class="nav__label">Tarefas</div>
+      <a href="{{ u_tar }}" class="{% if request.path == u_tar or '/tarefas/' in request.path and request.resolver_match.url_name in 'detalhe,nova,editar' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> Tarefas
+      </a>
+      <a href="{{ u_men }}" class="{% if request.resolver_match.url_name == 'gestao_mensal' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"/></svg> Gestão mensal
+      </a>
+      {% if nav_pode_editar %}
+      <a href="{{ u_vin }}" class="{% if request.resolver_match.url_name == 'vincular' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg> Vincular em massa
+      </a>
+      {% endif %}
+      {% if nav_pode_importar %}
+      <a href="{% url 'tarefas:importar_tarefas' %}" class="{% if request.resolver_match.url_name == 'importar_tarefas' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg> Importar tarefas
+      </a>
+      <a href="{% url 'tarefas:importar_vinculos' %}" class="{% if request.resolver_match.url_name == 'importar_vinculos' %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Importar vínculos
+      </a>
+      {% endif %}
+
+      {% if nav_pode_gerenciar_usuarios %}
+      <div class="nav__label">Administração</div>
+      <a href="{% url 'accounts:lista_usuarios' %}" class="{% if '/usuarios/' in request.path %}active{% endif %}">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg> Usuários
+      </a>
+      {% endif %}
+    </nav>
+    <div class="sidebar__user">
+      <div class="avatar">{{ user.first_name|first|default:user.username|first|upper }}</div>
+      <div>
+        <div class="who">{{ user.get_full_name|default:user.username }}</div>
+        <div class="role">{{ user.get_cargo_display }}</div>
+      </div>
+      <a href="{% url 'accounts:perfil' %}" title="Perfil">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <h1>{% block heading %}{% block title_bar %}{% endblock %}{% endblock %}</h1>
+      <div class="spacer"></div>
+      {% block topbar_actions %}{% endblock %}
+      <a href="{% url 'accounts:logout' %}" class="btn btn--ghost btn--sm"
+         onclick="event.preventDefault();document.getElementById('logout-form').submit();">
+        Sair
+      </a>
+      <form id="logout-form" method="post" action="{% url 'accounts:logout' %}" style="display:none">{% csrf_token %}</form>
+    </header>
+
+    <main class="content">
+      {% if messages %}
+      <div class="messages">
+        {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
