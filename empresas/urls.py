@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.lista_empresas, name="lista"),
     path("nova/", views.nova_empresa, name="nova"),
     path("importar/", views.importar, name="importar"),
+    path("exportar/", views.exportar, name="exportar"),
     path("modelo/", views.baixar_modelo, name="baixar_modelo"),
     path("fila/processar/", views.processar_fila, name="processar_fila"),
     path("rate-limit/", views.status_rate_limit, name="status_rate_limit"),
