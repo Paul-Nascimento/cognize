@@ -119,6 +119,44 @@ def importar_empresas(arquivo, usuario=None):
     return {"criadas": criadas, "atualizadas": atualizadas, "erros": erros}
 
 
+def exportar_empresas(queryset) -> bytes:
+    """Gera um .xlsx com todas as empresas do queryset informado."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Empresas"
+    headers = [
+        "ID Sistema", "CNPJ", "Regime Tributário", "Razão Social",
+        "Nome Fantasia", "Situação Cadastral", "Município", "UF",
+        "Inscrição ISS", "Inscrição ICMS", "E-mail", "Telefone",
+        "Status Consulta", "Observações",
+    ]
+    ws.append(headers)
+    for e in queryset:
+        ws.append([
+            e.id_sistema,
+            e.cnpj_formatado,
+            e.get_regime_tributario_display(),
+            e.razao_social,
+            e.nome_fantasia,
+            e.situacao_cadastral,
+            e.municipio,
+            e.uf,
+            e.inscricao_iss,
+            e.inscricao_icms,
+            e.email,
+            e.telefone,
+            e.get_status_consulta_display(),
+            e.observacoes,
+        ])
+    for col in ws.columns:
+        largura = max(len(str(c.value or "")) for c in col) + 4
+        ws.column_dimensions[col[0].column_letter].width = min(largura, 45)
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
 def gerar_modelo_empresas() -> bytes:
     """Gera um .xlsx modelo para preenchimento."""
     wb = Workbook()
