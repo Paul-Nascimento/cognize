@@ -15,6 +15,9 @@
     </span>
     <span>{{ orcamento.disponiveis }}/{{ orcamento.limite }}</span>
   </div>
+  <a href="{% url 'empresas:exportar' %}{% if busca or status_sel %}?q={{ busca|urlencode }}&status={{ status_sel|urlencode }}{% endif %}" class="btn btn--ghost">
+    <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg> Baixar Excel
+  </a>
   {% if nav_pode_editar %}
   <a href="{% url 'empresas:nova' %}" class="btn">
     <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Nova empresa
