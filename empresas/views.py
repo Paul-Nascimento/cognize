@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import requer_edicao, requer_gestor
 from .forms import EmpresaEdicaoForm, EmpresaForm, ImportarEmpresasForm
-from .imports import gerar_modelo_empresas, importar_empresas
+from .imports import exportar_empresas, gerar_modelo_empresas, importar_empresas
 from .models import Empresa, StatusConsulta
 from .services import (
     RateLimitError,
@@ -17,8 +17,8 @@ from .services import (
 )
 
 
-@login_required
-def lista_empresas(request):
+def _filtrar_empresas(request):
+    """Aplica busca e filtro de status a partir dos parâmetros GET."""
     busca = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
     empresas = Empresa.objects.all()
@@ -31,6 +31,12 @@ def lista_empresas(request):
         )
     if status:
         empresas = empresas.filter(status_consulta=status)
+    return empresas, busca, status
+
+
+@login_required
+def lista_empresas(request):
+    empresas, busca, status = _filtrar_empresas(request)
 
     orc = orcamento_atual()
     pendentes = Empresa.objects.filter(status_consulta=StatusConsulta.PENDENTE).count()
@@ -240,6 +246,19 @@ def importar(request):
         "empresas/importar.html",
         {"form": form, "resultado": resultado},
     )
+
+
+@login_required
+def exportar(request):
+    """Baixa um .xlsx com todas as empresas (respeitando os filtros da lista)."""
+    empresas, _, _ = _filtrar_empresas(request)
+    conteudo = exportar_empresas(empresas)
+    resp = HttpResponse(
+        conteudo,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resp["Content-Disposition"] = 'attachment; filename="empresas.xlsx"'
+    return resp
 
 
 @requer_gestor
